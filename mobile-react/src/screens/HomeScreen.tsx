@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Dimensions } from 'react-native';
+import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, Dimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MOCK_PLANTS, Plant } from '../data/mock';
 import { GlossyCard } from '../components/GlossyCard';
@@ -183,7 +183,12 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.2)',
         justifyContent: 'center',
         alignItems: 'center',
-        backdropFilter: 'blur(10px)',
+        ...Platform.select({
+            web: {
+                backdropFilter: 'blur(10px)',
+            } as any, // Cast to any to avoid TS error for web-only prop
+            default: {}
+        }),
     },
     redDot: {
         position: 'absolute',
