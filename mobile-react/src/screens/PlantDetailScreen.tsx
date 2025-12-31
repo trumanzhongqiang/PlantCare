@@ -1,203 +1,382 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, StatusBar, TextInput, FlatList, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GlossyCard } from '../components/GlossyCard';
 import { COLORS, CONSTANTS, SPACING } from '../theme';
-import { Droplets, Sun, Wind, ArrowLeft, MessageCircle } from 'lucide-react-native';
+import { ArrowLeft, Send, MoreVertical, Wifi } from 'lucide-react-native';
+import { Message } from '../data/mock';
+import { EmotionalAvatar } from '../components/EmotionalAvatar';
+import { BackgroundEffect } from '../components/BackgroundEffect';
 
 export const PlantDetailScreen = ({ route, navigation }: any) => {
     const { plant } = route.params;
+    const [messages, setMessages] = useState<Message[]>(plant.chatHistory || []);
+    const [inputText, setInputText] = useState('');
+    const [showSensorModal, setShowSensorModal] = useState(false);
+    const flatListRef = useRef<FlatList>(null);
 
-    return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" />
-            <Image source={{ uri: plant.image }} style={styles.headerImage} />
-            <LinearGradient
-                colors={['transparent', 'rgba(0,0,0,0.8)']}
-                style={styles.imageOverlay}
-            />
+    const sendMessage = () => {
+        if (!inputText.trim()) return;
 
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-                <ArrowLeft color="white" size={24} />
-            </TouchableOpacity>
+        const newUserMsg: Message = {
+            id: Date.now().toString(),
+            text: inputText,
+            sender: 'user',
+            timestamp: new Date(),
+        };
 
-            <View style={styles.contentContainer}>
-                <View style={styles.header}>
-                    <Text style={styles.name}>{plant.name}</Text>
-                    <Text style={styles.species}>{plant.species}</Text>
-                </View>
+        setMessages(prev => [...prev, newUserMsg]);
+        setInputText('');
 
-                {/* The "Roommate" Chat Bubble */}
-                <GlossyCard style={styles.chatBubble}>
-                    <View style={styles.chatRow}>
-                        <View style={styles.avatarPlaceholder}>
-                            <Text style={{ fontSize: 20 }}>🌿</Text>
-                        </View>
-                        <View style={styles.bubbleText}>
-                            <Text style={styles.messageText}>
-                                {plant.status === 'Thirsty'
-                                    ? "Hey roomie! I'm kinda parched over here. Can I get a drink? 🥤"
-                                    : "Living my best life right now. Thanks for checking in! ✨"}
-                            </Text>
-                            <Text style={styles.timestamp}>Just now</Text>
-                        </View>
+        // Mock AI Response
+        setTimeout(() => {
+            const responses = [
+                "I'm feeling much better, thanks! 🌱",
+                "Could use a bit more sun if possible.",
+                "Did you know I originate from tropical forests? 🌴",
+                "I love this spot!",
+                "Water level looking good."
+            ];
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+            const newPlantMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                text: randomResponse,
+                sender: 'plant',
+                timestamp: new Date(),
+            };
+            setMessages(prev => [...prev, newPlantMsg]);
+        }, 1000);
+    };
+
+    useEffect(() => {
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    }, [messages]);
+
+    const renderMessage = ({ item }: { item: Message }) => {
+        const isUser = item.sender === 'user';
+        return (
+            <View style={[styles.msgContainer, isUser ? styles.msgRight : styles.msgLeft]}>
+                {!isUser && (
+                    <View style={styles.avatarSmall}>
+                        <Text>🌿</Text>
                     </View>
-                </GlossyCard>
-
-                <View style={styles.statsGrid}>
-                    <GlossyCard style={styles.statCard}>
-                        <Droplets color={COLORS.teal.primary} size={24} />
-                        <Text style={styles.statValue}>{plant.waterLevel}%</Text>
-                        <Text style={styles.statLabel}>Water</Text>
-                    </GlossyCard>
-
-                    <GlossyCard style={styles.statCard}>
-                        <Sun color="#FFD700" size={24} />
-                        <Text style={styles.statValue}>High</Text>
-                        <Text style={styles.statLabel}>Light</Text>
-                    </GlossyCard>
-
-                    <GlossyCard style={styles.statCard}>
-                        <Wind color={COLORS.sky.blue} size={24} />
-                        <Text style={styles.statValue}>22°C</Text>
-                        <Text style={styles.statLabel}>Temp</Text>
-                    </GlossyCard>
-                </View>
-
-                <View style={styles.actions}>
-                    <TouchableOpacity style={[styles.actionBtn, { backgroundColor: COLORS.teal.primary }]}>
-                        <Text style={styles.actionBtnText}>Water Me</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.actionBtn, { backgroundColor: COLORS.white }]}>
-                        <Text style={[styles.actionBtnText, { color: COLORS.teal.dark }]}>Chat</Text>
-                    </TouchableOpacity>
+                )}
+                <View style={[
+                    styles.bubble,
+                    isUser ? styles.bubbleRight : styles.bubbleLeft
+                ]}>
+                    <Text style={[styles.msgText, isUser ? styles.textWhite : styles.textDark]}>
+                        {item.text}
+                    </Text>
                 </View>
             </View>
-        </View>
+        );
+    };
+
+    return (
+        <>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+                style={styles.container}
+            >
+                <StatusBar barStyle="light-content" />
+
+                {/* Dynamic Header */}
+                <View style={styles.headerContainer}>
+                    {/* Atmospheric Lottie Effect */}
+                    <BackgroundEffect status={plant.status} />
+
+                    <Image source={{ uri: plant.image }} style={styles.headerBg} blurRadius={10} />
+                    <LinearGradient colors={['rgba(0,0,0,0.3)', COLORS.sky.light]} style={styles.headerGradient} />
+
+                    <SafeAreaView style={styles.safeHeader}>
+                        <View style={styles.navBar}>
+                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
+                                <ArrowLeft color="white" size={24} />
+                            </TouchableOpacity>
+                            <View style={styles.headerTitle}>
+                                <Text style={styles.headerName}>{plant.name}</Text>
+                                <Text style={styles.headerStatus}>{plant.status} • {plant.waterLevel}% Water</Text>
+                            </View>
+                            <TouchableOpacity
+                                style={styles.iconBtn}
+                                onPress={() => setShowSensorModal(true)}
+                            >
+                                <Wifi color="white" size={22} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Plant Avatar Circle */}
+                        <View style={styles.plantAvatarContainer}>
+                            <EmotionalAvatar image={plant.image} status={plant.status} />
+                        </View>
+                    </SafeAreaView>
+                </View>
+
+                {/* Chat Area */}
+                <View style={styles.chatArea}>
+                    <FlatList
+                        ref={flatListRef}
+                        data={messages}
+                        renderItem={renderMessage}
+                        keyExtractor={item => item.id}
+                        contentContainerStyle={styles.chatContent}
+                        showsVerticalScrollIndicator={false}
+                    />
+                </View>
+
+                {/* Input Area */}
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Message typical plant..."
+                        value={inputText}
+                        onChangeText={setInputText}
+                        placeholderTextColor="#999"
+                    />
+                    <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}>
+                        <Send color="white" size={20} />
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
+
+            {/* Hardware Link Modal */}
+            {showSensorModal && (
+                <View style={styles.modalOverlay}>
+                    <GlossyCard style={styles.modalCard}>
+                        <View style={styles.modalIcon}>
+                            <Wifi color={COLORS.teal.primary} size={40} />
+                        </View>
+                        <Text style={styles.modalTitle}>RootMate Sensor</Text>
+                        <Text style={styles.modalBadge}>COMING SOON</Text>
+                        <Text style={styles.modalDesc}>
+                            We are building a smart sensor that tracks soil moisture, light, and temperature in real-time.
+                        </Text>
+                        <Text style={styles.modalDesc}>
+                            Your plant will be able to text you before it gets thirsty!
+                        </Text>
+                        <TouchableOpacity
+                            style={styles.modalBtn}
+                            onPress={() => setShowSensorModal(false)}
+                        >
+                            <Text style={styles.modalBtnText}>Can't Wait!</Text>
+                        </TouchableOpacity>
+                    </GlossyCard>
+                </View>
+            )}
+        </>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: COLORS.sky.light,
     },
-    headerImage: {
+    headerContainer: {
+        height: 220,
         width: '100%',
-        height: 400,
-        resizeMode: 'cover',
+        position: 'relative',
     },
-    imageOverlay: {
+    headerBg: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    headerGradient: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    safeHeader: {
+        flex: 1,
+    },
+    navBar: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: SPACING.m,
+        paddingTop: SPACING.s,
+    },
+    iconBtn: {
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        borderRadius: 20,
+    },
+    headerTitle: {
+        alignItems: 'center',
+    },
+    headerName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'white',
+        textShadowColor: 'rgba(0,0,0,0.3)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
+    },
+    headerStatus: {
+        fontSize: 12,
+        color: 'rgba(255,255,255,0.9)',
+    },
+    plantAvatarContainer: {
+        position: 'absolute',
+        bottom: -40,
+        alignSelf: 'center',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
+        elevation: 10,
+    },
+    statusDot: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        borderWidth: 3,
+        borderColor: COLORS.sky.light,
+        position: 'absolute',
+        bottom: 5,
+        right: 5,
+    },
+    chatArea: {
+        flex: 1,
+        marginTop: 50, // Space for avatar
+    },
+    chatContent: {
+        padding: SPACING.m,
+        paddingBottom: SPACING.m,
+    },
+    msgContainer: {
+        flexDirection: 'row',
+        marginBottom: SPACING.m,
+        alignItems: 'flex-end',
+    },
+    msgLeft: {
+        alignSelf: 'flex-start',
+    },
+    msgRight: {
+        alignSelf: 'flex-end',
+        justifyContent: 'flex-end',
+    },
+    avatarSmall: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: COLORS.teal.light,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    bubble: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 20,
+        maxWidth: '75%',
+    },
+    bubbleLeft: {
+        backgroundColor: COLORS.white,
+        borderBottomLeftRadius: 4,
+    },
+    bubbleRight: {
+        backgroundColor: COLORS.teal.primary,
+        borderBottomRightRadius: 4,
+    },
+    msgText: {
+        fontSize: 15,
+    },
+    textWhite: {
+        color: 'white',
+    },
+    textDark: {
+        color: COLORS.text.primary,
+    },
+    inputContainer: {
+        flexDirection: 'row',
+        padding: SPACING.m,
+        backgroundColor: COLORS.white,
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(0,0,0,0.05)',
+        paddingBottom: Platform.OS === 'ios' ? 40 : SPACING.m,
+    },
+    input: {
+        flex: 1,
+        backgroundColor: '#F0F0F0',
+        borderRadius: 25,
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        marginRight: SPACING.m,
+        fontSize: 16,
+    },
+    sendBtn: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: COLORS.teal.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    // New Modal Styles
+    modalOverlay: {
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        height: 400,
-    },
-    backButton: {
-        position: 'absolute',
-        top: 50,
-        left: 20,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(0,0,0,0.3)',
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    contentContainer: {
-        flex: 1,
-        marginTop: -50,
-        backgroundColor: COLORS.sky.light,
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
         padding: SPACING.l,
+        zIndex: 100,
     },
-    header: {
-        marginBottom: SPACING.l,
+    modalCard: {
+        backgroundColor: 'white',
+        borderRadius: 24,
+        padding: SPACING.xl,
         alignItems: 'center',
+        width: '100%',
     },
-    name: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: COLORS.text.primary,
-    },
-    species: {
-        fontSize: 16,
-        color: COLORS.text.secondary,
-        fontStyle: 'italic',
-    },
-    chatBubble: {
-        marginBottom: SPACING.l,
-        backgroundColor: 'rgba(255,255,255,0.8)',
-    },
-    chatRow: {
-        flexDirection: 'row',
-        gap: SPACING.m,
-    },
-    avatarPlaceholder: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: COLORS.teal.light,
+    modalIcon: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#E0F2F1',
         justifyContent: 'center',
         alignItems: 'center',
+        marginBottom: SPACING.m,
     },
-    bubbleText: {
-        flex: 1,
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: COLORS.teal.dark,
+        marginBottom: 4,
     },
-    messageText: {
-        fontSize: 14,
-        color: COLORS.text.primary,
+    modalBadge: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: COLORS.teal.primary,
+        backgroundColor: 'rgba(0,128,128,0.1)',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginBottom: SPACING.m,
+    },
+    modalDesc: {
+        textAlign: 'center',
+        color: COLORS.text.secondary,
+        marginBottom: SPACING.m,
         lineHeight: 20,
     },
-    timestamp: {
-        fontSize: 10,
-        color: COLORS.text.secondary,
-        marginTop: 4,
-        alignSelf: 'flex-end',
+    modalBtn: {
+        backgroundColor: COLORS.teal.primary,
+        paddingHorizontal: 32,
+        paddingVertical: 12,
+        borderRadius: 20,
+        marginTop: SPACING.s,
     },
-    statsGrid: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: SPACING.m,
-        marginBottom: SPACING.xl,
-    },
-    statCard: {
-        flex: 1,
-        alignItems: 'center',
-        padding: SPACING.m,
-        height: 100,
-    },
-    statValue: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: COLORS.text.primary,
-        marginVertical: 4,
-    },
-    statLabel: {
-        fontSize: 12,
-        color: COLORS.text.secondary,
-    },
-    actions: {
-        flexDirection: 'row',
-        gap: SPACING.m,
-    },
-    actionBtn: {
-        flex: 1,
-        padding: 16,
-        borderRadius: CONSTANTS.BORDER_RADIUS.l,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        elevation: 2,
-    },
-    actionBtnText: {
-        fontSize: 16,
-        fontWeight: 'bold',
+    modalBtnText: {
         color: 'white',
-    }
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
 });
