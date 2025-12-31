@@ -1,59 +1,60 @@
-### **产品核心定位：AI 绿植伴侣 (The Authentic AI Plant Companion)**
+# RootMate: AI Plant Companion - Product Roadmap
 
-*   **核心理念**：从“冷冰冰的提醒工具”转变为“有温度的植物日记”，强调 **Lived-In（生活化）** 的真实感而非完美主义。
-*   **产品名称**：**RootMate**：“植物舍友”，强调植物是家庭成员的一部分，比单纯的工具更具亲和力。
-*   **视觉风格**：采用 **Frutiger Aero** 审美（2000年代初的青蓝色 Teal、高光质感），利用 **Tech Nostalgia（技术怀旧）** 吸引Z世代用户。
-*   **产品形态**：**移动 APP**，优先考虑跨平台开发框架（React Native）。
-*   **LandingPage**：**Web**，用于 SEO 获客，发布产品介绍、植物养护知识博客。通过视觉风格锚定产品调性与用户第一印象。
+## 🌟 Product Vision
+**"Not just a tool, but a Roommate."**
+RootMate redefines plant care by turning plants into emotional companions. Using a "Frutiger Aero" / Tech Nostalgia aesthetic, we create a living, breathing digital interface where plants communicate their needs through emotion and atmosphere, not just data.
 
 ---
 
-### **第一阶段：最小可行性产品 (MVP) —— 建立信任与核心工具 (第1-4个月)**
-**目标：解决“过度浇水”这一头号杀手，通过独特审美实现初步 PMF。**
+## 📅 Phase 1: The "Digital Soul" MVP (Completed)
+**Goal:** Deliver a high-fidelity "Demo" Experience that validates the emotional core and "Frutiger Aero" aesthetic.
+**Status:** ✅ Complete
+**Tech Stack:** React Native (Expo), TypeScript, HTML/CSS (Landing Page).
 
-1.  **科学的“检查”而非“执行”提醒**：
-    *   **动态策略**：不使用死板的固定时间表，而是根据 **OpenWeather API** 获取的本地气候（光照、湿度）和用户输入的植物位置（如“南向窗台”）生成“建议检查时间”。
-    *   **引导手动校验**：提醒用户“摸一摸土下2-3英寸是否干燥”，而非直接指令灌溉，以此降低对APP自动化的不信任感。
-2.  **视觉化绿植日记 (Progress Updates)**：
-    *   建立简易的照片流功能。Reddit用户非常喜欢通过照片记录植物从萎靡到重生的过程（Rescue success）。
-3.  **精准识别与基础诊断**：
-    *   集成第三方识别API（如 **PictureThis** 类似的底层技术），但加入人工/AI二次校验逻辑，避免给出“误导性农药建议”。
-4.  **获客渠道**：
-    *   在 **Reddit (r/houseplants)** 以个人开发者身份发帖，提供限时的“终身买断”优惠，避开用户反感的昂贵订阅制。
+### Key Features Delivered
+1.  **"Frutiger Aero" UI System**
+    -   Glossy, translucent glass cards (`GlossyCard`).
+    -   Vibrant, optimistic color palettes (Teal/Sky Blue gradients).
+    -   Atmospheric Lottie animations (Sun rays, Rain droplets) that layer over the UI.
 
----
+2.  **"My Dorm" (Home Screen)**
+    -   **Dual View**: Switch between "Stream" (immersive list) and "Grid" (compact) layouts.
+    -   **Dynamic Status**: Visual badges reflecting plant health (Happy, Thirsty, Sad).
+    -   **Quick Actions**: Bottom-right FAB for adding plants; Notification Bell for urgent alerts.
 
-### **第二阶段：AI 情感化与利基社交 (第5-8个月)**
-**目标：通过 AI 个性化交互提升留存率，构建垂直社区。**
+3.  **"The Roommate" (Detail Screen)**
+    -   **Emotional Avatar**: A pulsing, glowing halo that changes color/speed based on plant status (Green=Happy, Blue=Thirsty).
+    -   **Contextual Chat**: Mock AI chat interface where plants send "Good Morning" or "I'm Thirsty" texts.
+    -   **Hardware Teaser**: "Link Sensor" modal showcasing future IoT integration plan.
 
-1.  **赋予植物“声音” (AI Plant Persona)**：
-    *   利用 **Gemini API** 构建具有独特个性的 AI 助手。植物会根据健康数据给主人发消息，例如：“我今天感觉有点渴，给我来点水吧，爱你。——你的龟背竹”。
-2.  **“非真实”美学滤镜与分享**：
-    *   顺应 **Unreal/Surreal Pastels（超现实色彩）** 趋势，允许用户为植物照片添加超现实、梦幻的滤镜，并一键分享到 **Pinterest** 或 **Lemon8**，利用视觉冲击力获客。
-3.  **利基社交小组**：
-    *   建立基于特定植物（如“龟背竹站 Fenestration Station”）或特定人群（如“公寓租房族 Renter-friendly”）的小型互助圈子，避开大平台的噪音。
-4.  **可持续养护建议**：
-    *   提供低成本、环保的养护方案，如“自制有机肥”或“雨水收集建议”，贴合欧美市场的 **Eco-optimism（生态乐观）** 趋势。
+4.  **Landing Page**
+    -   Responsive HTML/CSS marketing page ("Smart Garden").
+    -   Showcases the emotional connection and "Tech Nostalgia" vibe.
 
 ---
 
-### **第三阶段：智能化扩展与生态接入 (第9个月及以后)**
-**目标：通过软硬件结合或高级功能实现规模化盈利。**
+## Make it Real: Phase 2 (Next Steps)
+**Goal:** Connect the "Digital Soul" to reality. Replace mock data with real local logic and basic AI.
+**Focus:** Functionality & Persistence.
 
-1.  **环境光分析工具 (Light Meter)**：
-    *   利用手机摄像头和光敏元件传感器，帮助用户精确测量家中某个角落是否适合放置多肉或喜阴植物。
-2.  **音乐疗法集成 (Sound of Plants)**：
-    *   与 **Spotify API** 结合，根据植物状态推荐绿植养护时听的音乐（如流行或冥想乐），增强用户的心理健康获得感。
-3.  **第三方硬件接入 (DIY Hub)**：
-    *   支持用户接入廉价的第三方蓝牙/Zigbee土壤湿度传感器（如 **Xiaomi Flora** 或 **Echo**），在仪表盘上展示实时数据，将APP提升为“绿植中央控制台”。
-4.  **B2C 商业模式探索**：
-    *   与当地精品花店（Boutique flower farms）合作，提供“定制化采集建议 (Foraged collections)”，或通过返利模式引导用户购买适合其植物的装饰性花盆。
+-   [ ] **Local Data Persistence**: Implement `SQLite` or `AsyncStorage` to save added plants permanently.
+-   [ ] **Real Camera Integration**: Allow users to take and crop actual photos of their plants.
+-   [ ] **Basic LLM Integration**: Connect "Contextual Chat" to a real API (Gemini/OpenAI) for dynamic responses.
+-   [ ] **Watering Logic**: Implement the "Water" action to actually reset the plant's status and date.
 
 ---
 
-### **避坑**
-开发这个产品就像在森林里种一棵**盆栽**而非森林本身：
-*   **不要贪大**：与其做一个能管理一万种植物的数据库，不如做一个能让那 20% 的“龟背竹父母”疯狂尖叫的精致应用。
-*   **人工辅助 AI**：正如来源所说，AI有时会产生幻觉（如推荐禁药）。个人开发者应加入一个“社区二次投票”或“参考专家文章”的环节来对冲技术风险。
+## Phase 3: The "Connected Ecosystem"
+**Goal:** Hardware integration and social features.
 
-**结论**：先靠 **Frutiger Aero 的视觉吸引力** 敲开市场，再靠 **基于环境的科学检查逻辑** 留住用户，最后靠 **AI 的情感连接** 做到 PMF。
+-   [ ] **RootMate Sensor (IoT)**: Prototype the Soil/Light sensor (ESP32) that communicates with the app via BLE/WiFi.
+-   [ ] **"Plant Dates"**: Lightweight social feature to match plants with similar care needs.
+-   [ ] **Advanced Atmosphere**: distinct animations for Day/Night cycles synchronized with real time.
+
+---
+
+## ⚠️ Implementation Note
+This project is currently a **Product Demo / Prototype**. 
+-   Data is mocked/static.
+-   AI interactions are simulated.
+-   Hardware integration is UI-only.
