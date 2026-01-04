@@ -1,172 +1,152 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, StatusBar, TextInput, FlatList, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, StatusBar, SafeAreaView, Platform, Alert, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { GlossyCard } from '../components/GlossyCard';
-import { COLORS, CONSTANTS, SPACING } from '../theme';
-import { ArrowLeft, Send, MoreVertical, Wifi } from 'lucide-react-native';
-import { Message } from '../data/mock';
-import { EmotionalAvatar } from '../components/EmotionalAvatar';
+import { COLORS, SPACING } from '../theme';
+import { ArrowLeft, Droplets, Thermometer, Sun, Wind, CheckCircle } from 'lucide-react-native';
 import { BackgroundEffect } from '../components/BackgroundEffect';
+
+// Map status to action specs
+const ACTION_MAP: Record<string, { label: string, icon: any, color: string, successMsg: string }> = {
+    'Thirsty': { label: 'Water Plant', icon: Droplets, color: COLORS.teal.primary, successMsg: 'Thirst quenched! 💧' },
+    'Sick': { label: 'Start Diagnosis', icon: Thermometer, color: COLORS.status.bad, successMsg: 'Diagnosis started...' },
+    'Hungry': { label: 'Add Fertilizer', icon: Sparkles, color: '#FFB74D', successMsg: 'Yummy! 🥣' },
+    'Cold': { label: 'Find Warmer Spot', icon: Thermometer, color: '#4FC3F7', successMsg: 'Warming up...' },
+    'Hot': { label: 'Find Cooler Spot', icon: Sun, color: '#FF8A65', successMsg: 'Cooling down...' },
+    'Dark': { label: 'Move to Light', icon: Sun, color: '#90A4AE', successMsg: 'Let there be light! ☀️' },
+    'Happy': { label: 'All Good', icon: CheckCircle, color: COLORS.status.good, successMsg: 'Just chilling! 🌿' },
+};
+
+import { Sparkles } from 'lucide-react-native'; // Import locally
 
 export const PlantDetailScreen = ({ route, navigation }: any) => {
     const { plant } = route.params;
-    const [messages, setMessages] = useState<Message[]>(plant.chatHistory || []);
-    const [inputText, setInputText] = useState('');
-    const [showSensorModal, setShowSensorModal] = useState(false);
-    const flatListRef = useRef<FlatList>(null);
+    const [status, setStatus] = useState(plant.status);
 
-    const sendMessage = () => {
-        if (!inputText.trim()) return;
+    // Status Config
+    const currentAction = ACTION_MAP[status] || ACTION_MAP['Happy'];
+    const isHappy = status === 'Happy';
 
-        const newUserMsg: Message = {
-            id: Date.now().toString(),
-            text: inputText,
-            sender: 'user',
-            timestamp: new Date(),
-        };
+    const handleAction = () => {
+        if (isHappy) return;
 
-        setMessages(prev => [...prev, newUserMsg]);
-        setInputText('');
-
-        // Mock AI Response
-        setTimeout(() => {
-            const responses = [
-                "I'm feeling much better, thanks! 🌱",
-                "Could use a bit more sun if possible.",
-                "Did you know I originate from tropical forests? 🌴",
-                "I love this spot!",
-                "Water level looking good."
-            ];
-            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-
-            const newPlantMsg: Message = {
-                id: (Date.now() + 1).toString(),
-                text: randomResponse,
-                sender: 'plant',
-                timestamp: new Date(),
-            };
-            setMessages(prev => [...prev, newPlantMsg]);
-        }, 1000);
-    };
-
-    useEffect(() => {
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-    }, [messages]);
-
-    const renderMessage = ({ item }: { item: Message }) => {
-        const isUser = item.sender === 'user';
-        return (
-            <View style={[styles.msgContainer, isUser ? styles.msgRight : styles.msgLeft]}>
-                {!isUser && (
-                    <View style={styles.avatarSmall}>
-                        <Text>🌿</Text>
-                    </View>
-                )}
-                <View style={[
-                    styles.bubble,
-                    isUser ? styles.bubbleRight : styles.bubbleLeft
-                ]}>
-                    <Text style={[styles.msgText, isUser ? styles.textWhite : styles.textDark]}>
-                        {item.text}
-                    </Text>
-                </View>
-            </View>
+        Alert.alert(
+            currentAction.label,
+            `Do you want to ${currentAction.label.toLowerCase()}?`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Yes, Done!",
+                    onPress: () => {
+                        // Optimistic Update
+                        setStatus('Happy');
+                        Alert.alert("Great Job!", currentAction.successMsg);
+                        // In a real app, we would update the backend/store here
+                    }
+                }
+            ]
         );
     };
 
     return (
-        <>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
-                style={styles.container}
-            >
-                <StatusBar barStyle="light-content" />
+        <View style={styles.container}>
+            <StatusBar barStyle="light-content" />
 
-                {/* Dynamic Header */}
-                <View style={styles.headerContainer}>
-                    {/* Atmospheric Lottie Effect */}
-                    <BackgroundEffect status={plant.status} />
+            {/* Background Image & Overlay */}
+            <View style={styles.bgContainer}>
+                <Image source={{ uri: plant.image }} style={styles.bgImage} blurRadius={Platform.OS === 'ios' ? 20 : 10} />
+                <LinearGradient
+                    colors={['rgba(0,0,0,0.3)', COLORS.sky.light]}
+                    style={styles.bgGradient}
+                />
+            </View>
 
-                    <Image source={{ uri: plant.image }} style={styles.headerBg} blurRadius={10} />
-                    <LinearGradient colors={['rgba(0,0,0,0.3)', COLORS.sky.light]} style={styles.headerGradient} />
+            {/* Animation Effect */}
+            <BackgroundEffect status={status} />
 
-                    <SafeAreaView style={styles.safeHeader}>
-                        <View style={styles.navBar}>
-                            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
-                                <ArrowLeft color="white" size={24} />
-                            </TouchableOpacity>
-                            <View style={styles.headerTitle}>
-                                <Text style={styles.headerName}>{plant.name}</Text>
-                                <Text style={styles.headerStatus}>{plant.status} • {plant.waterLevel}% Water</Text>
-                            </View>
-                            <TouchableOpacity
-                                style={styles.iconBtn}
-                                onPress={() => setShowSensorModal(true)}
-                            >
-                                <Wifi color="white" size={22} />
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Plant Avatar Circle */}
-                        <View style={styles.plantAvatarContainer}>
-                            <EmotionalAvatar image={plant.image} status={plant.status} />
-                        </View>
-                    </SafeAreaView>
-                </View>
-
-                {/* Chat Area */}
-                <View style={styles.chatArea}>
-                    <FlatList
-                        ref={flatListRef}
-                        data={messages}
-                        renderItem={renderMessage}
-                        keyExtractor={item => item.id}
-                        contentContainerStyle={styles.chatContent}
-                        showsVerticalScrollIndicator={false}
-                    />
-                </View>
-
-                {/* Input Area */}
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Message typical plant..."
-                        value={inputText}
-                        onChangeText={setInputText}
-                        placeholderTextColor="#999"
-                    />
-                    <TouchableOpacity style={styles.sendBtn} onPress={sendMessage}>
-                        <Send color="white" size={20} />
+            <SafeAreaView style={styles.safeArea}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                        <ArrowLeft color="white" size={24} />
                     </TouchableOpacity>
+                    <Text style={styles.screenTitle}>Plant Monitor</Text>
+                    <View style={{ width: 40 }} />
                 </View>
-            </KeyboardAvoidingView>
 
-            {/* Hardware Link Modal */}
-            {showSensorModal && (
-                <View style={styles.modalOverlay}>
-                    <GlossyCard style={styles.modalCard}>
-                        <View style={styles.modalIcon}>
-                            <Wifi color={COLORS.teal.primary} size={40} />
+                <ScrollView contentContainerStyle={styles.content}>
+
+                    {/* Main Status Appearance (The "Character") */}
+                    <View style={styles.characterContainer}>
+                        <View style={styles.imageRing}>
+                            <Image source={{ uri: plant.image }} style={styles.mainImage} />
+                            {/* Emoji Badge Overlay */}
+                            <View style={styles.emojiBadge}>
+                                <Text style={styles.emojiText}>
+                                    {status === 'Happy' ? '🌿' :
+                                        status === 'Thirsty' ? '🥺' :
+                                            status === 'Sick' ? '🤒' :
+                                                status === 'Hungry' ? '🥣' :
+                                                    status === 'Cold' ? '🥶' :
+                                                        status === 'Hot' ? '🥵' : '🌑'}
+                                </Text>
+                            </View>
                         </View>
-                        <Text style={styles.modalTitle}>RootMate Sensor</Text>
-                        <Text style={styles.modalBadge}>COMING SOON</Text>
-                        <Text style={styles.modalDesc}>
-                            We are building a smart sensor that tracks soil moisture, light, and temperature in real-time.
-                        </Text>
-                        <Text style={styles.modalDesc}>
-                            Your plant will be able to text you before it gets thirsty!
-                        </Text>
-                        <TouchableOpacity
-                            style={styles.modalBtn}
-                            onPress={() => setShowSensorModal(false)}
-                        >
-                            <Text style={styles.modalBtnText}>Can't Wait!</Text>
-                        </TouchableOpacity>
+
+                        <Text style={styles.plantName}>{plant.name}</Text>
+                        <Text style={styles.plantSpecies}>{plant.species}</Text>
+                    </View>
+
+                    {/* Status Dashboard */}
+                    <GlossyCard style={styles.statusCard}>
+                        <View style={styles.statusHeader}>
+                            <Text style={styles.statusLabel}>Current Mood</Text>
+                            <Text style={[styles.statusValue, { color: currentAction.color }]}>{status}</Text>
+                        </View>
+
+                        <View style={styles.divider} />
+
+                        <View style={styles.metricsRow}>
+                            <View style={styles.metric}>
+                                <Droplets size={20} color={COLORS.teal.primary} />
+                                <Text style={styles.metricVal}>{plant.waterLevel}%</Text>
+                                <Text style={styles.metricLabel}>Water</Text>
+                            </View>
+                            <View style={styles.metric}>
+                                <Sun size={20} color="#FFB74D" />
+                                <Text style={styles.metricVal}>High</Text>
+                                <Text style={styles.metricLabel}>Light</Text>
+                            </View>
+                            <View style={styles.metric}>
+                                <Thermometer size={20} color="#FF8A65" />
+                                <Text style={styles.metricVal}>24°C</Text>
+                                <Text style={styles.metricLabel}>Temp</Text>
+                            </View>
+                        </View>
                     </GlossyCard>
-                </View>
-            )}
-        </>
+
+                    {/* Action Button */}
+                    {!isHappy && (
+                        <TouchableOpacity
+                            style={[styles.actionBtn, { backgroundColor: currentAction.color }]}
+                            onPress={handleAction}
+                            activeOpacity={0.8}
+                        >
+                            <currentAction.icon color="white" size={24} style={{ marginRight: 8 }} />
+                            <Text style={styles.actionBtnText}>{currentAction.label}</Text>
+                        </TouchableOpacity>
+                    )}
+
+                    {/* Happy State Message */}
+                    {isHappy && (
+                        <View style={styles.happyState}>
+                            <Text style={styles.happyText}>All systems normal! Next check in 2 days.</Text>
+                        </View>
+                    )}
+
+                </ScrollView>
+            </SafeAreaView>
+        </View>
     );
 };
 
@@ -175,208 +155,170 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.sky.light,
     },
-    headerContainer: {
-        height: 220,
+    bgContainer: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    bgImage: {
         width: '100%',
-        position: 'relative',
+        height: '100%',
+        opacity: 0.8,
     },
-    headerBg: {
+    bgGradient: {
         ...StyleSheet.absoluteFillObject,
     },
-    headerGradient: {
-        ...StyleSheet.absoluteFillObject,
-    },
-    safeHeader: {
+    safeArea: {
         flex: 1,
     },
-    navBar: {
+    header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: SPACING.m,
-        paddingTop: SPACING.s,
+        marginBottom: SPACING.l,
     },
-    iconBtn: {
+    backBtn: {
         width: 40,
         height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
+        borderRadius: 20,
         backgroundColor: 'rgba(0,0,0,0.2)',
-        borderRadius: 20,
-    },
-    headerTitle: {
+        justifyContent: 'center',
         alignItems: 'center',
     },
-    headerName: {
+    screenTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontWeight: '600',
         color: 'white',
-        textShadowColor: 'rgba(0,0,0,0.3)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 3,
     },
-    headerStatus: {
-        fontSize: 12,
-        color: 'rgba(255,255,255,0.9)',
+    content: {
+        paddingHorizontal: SPACING.l,
+        alignItems: 'center',
     },
-    plantAvatarContainer: {
-        position: 'absolute',
-        bottom: -40,
-        alignSelf: 'center',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
-        elevation: 10,
+
+    // Character Visuals
+    characterContainer: {
+        alignItems: 'center',
+        marginBottom: SPACING.xl,
     },
-    statusDot: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        borderWidth: 3,
-        borderColor: COLORS.sky.light,
-        position: 'absolute',
-        bottom: 5,
-        right: 5,
-    },
-    chatArea: {
-        flex: 1,
-        marginTop: 50, // Space for avatar
-    },
-    chatContent: {
-        padding: SPACING.m,
-        paddingBottom: SPACING.m,
-    },
-    msgContainer: {
-        flexDirection: 'row',
+    imageRing: {
+        width: 200,
+        height: 200,
+        borderRadius: 100,
+        borderWidth: 4,
+        borderColor: 'rgba(255,255,255,0.8)',
+        padding: 4,
         marginBottom: SPACING.m,
-        alignItems: 'flex-end',
+        position: 'relative',
     },
-    msgLeft: {
-        alignSelf: 'flex-start',
-    },
-    msgRight: {
-        alignSelf: 'flex-end',
-        justifyContent: 'flex-end',
-    },
-    avatarSmall: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: COLORS.teal.light,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 8,
-    },
-    bubble: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 20,
-        maxWidth: '75%',
-    },
-    bubbleLeft: {
-        backgroundColor: COLORS.white,
-        borderBottomLeftRadius: 4,
-    },
-    bubbleRight: {
-        backgroundColor: COLORS.teal.primary,
-        borderBottomRightRadius: 4,
-    },
-    msgText: {
-        fontSize: 15,
-    },
-    textWhite: {
-        color: 'white',
-    },
-    textDark: {
-        color: COLORS.text.primary,
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        padding: SPACING.m,
-        backgroundColor: COLORS.white,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.05)',
-        paddingBottom: Platform.OS === 'ios' ? 40 : SPACING.m,
-    },
-    input: {
-        flex: 1,
-        backgroundColor: '#F0F0F0',
-        borderRadius: 25,
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        marginRight: SPACING.m,
-        fontSize: 16,
-    },
-    sendBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: COLORS.teal.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    // New Modal Styles
-    modalOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: SPACING.l,
-        zIndex: 100,
-    },
-    modalCard: {
-        backgroundColor: 'white',
-        borderRadius: 24,
-        padding: SPACING.xl,
-        alignItems: 'center',
+    mainImage: {
         width: '100%',
+        height: '100%',
+        borderRadius: 100,
+        resizeMode: 'cover',
     },
-    modalIcon: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: '#E0F2F1',
+    emojiBadge: {
+        position: 'absolute',
+        bottom: 0,
+        right: 10,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: 'white',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: SPACING.m,
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
     },
-    modalTitle: {
-        fontSize: 24,
+    emojiText: {
+        fontSize: 32,
+    },
+    plantName: {
+        fontSize: 28,
         fontWeight: 'bold',
-        color: COLORS.teal.dark,
+        color: COLORS.text.primary,
         marginBottom: 4,
     },
-    modalBadge: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        color: COLORS.teal.primary,
-        backgroundColor: 'rgba(0,128,128,0.1)',
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 4,
-        marginBottom: SPACING.m,
-    },
-    modalDesc: {
-        textAlign: 'center',
-        color: COLORS.text.secondary,
-        marginBottom: SPACING.m,
-        lineHeight: 20,
-    },
-    modalBtn: {
-        backgroundColor: COLORS.teal.primary,
-        paddingHorizontal: 32,
-        paddingVertical: 12,
-        borderRadius: 20,
-        marginTop: SPACING.s,
-    },
-    modalBtnText: {
-        color: 'white',
-        fontWeight: 'bold',
+    plantSpecies: {
         fontSize: 16,
+        color: COLORS.text.secondary,
+        fontStyle: 'italic',
+    },
+
+    // Status Card
+    statusCard: {
+        width: '100%',
+        padding: SPACING.l,
+        marginBottom: SPACING.xl,
+    },
+    statusHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: SPACING.m,
+    },
+    statusLabel: {
+        fontSize: 14,
+        color: COLORS.text.secondary,
+        fontWeight: '600',
+    },
+    statusValue: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    divider: {
+        height: 1,
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        marginBottom: SPACING.m,
+    },
+    metricsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    metric: {
+        alignItems: 'center',
+    },
+    metricVal: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: COLORS.text.primary,
+        marginTop: 4,
+    },
+    metricLabel: {
+        fontSize: 12,
+        color: COLORS.text.secondary,
+    },
+
+    // Action Button
+    actionBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 16,
+        paddingHorizontal: 32,
+        borderRadius: 30,
+        width: '100%',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 6,
+    },
+    actionBtnText: {
+        color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+
+    // Happy State
+    happyState: {
+        backgroundColor: 'rgba(255,255,255,0.6)',
+        padding: SPACING.m,
+        borderRadius: 16,
+    },
+    happyText: {
+        color: COLORS.teal.dark,
+        fontWeight: '500',
     },
 });

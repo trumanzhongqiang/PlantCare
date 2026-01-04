@@ -29,6 +29,7 @@ export const COLORS = {
         good: '#90EE90', // Light green
         warning: '#FFD700', // Gold
         bad: '#FF6B6B', // Soft red
+        critical: '#FF5252', // Red
     }
 };
 
