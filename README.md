@@ -59,10 +59,7 @@ npx expo start
 *   **Animations**: `lottie-react-native`, `react-native-reanimated`
 *   **Icons**: `lucide-react-native`
 
-## 🔮 Future Roadmap
-See [roadmap.md](./roadmap.md) for the detailed plan.
--   **Phase 2**: Real AI Chat Integration & Local Data Persistence.
--   **Phase 3**: IoT Hardware Sensor Integration.
+
 
 ---
 *Created by the RootMate Team*

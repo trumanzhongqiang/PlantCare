@@ -59,10 +59,5 @@ npx expo start
 *   **动画**: `lottie-react-native`, `react-native-reanimated`
 *   **图标**: `lucide-react-native`
 
-## 🔮 未来路线图
-详见 [roadmap.md](./roadmap.md) (英文)。
--   **第二阶段**: 真实的 AI 聊天集成 & 本地数据持久化。
--   **第三阶段**: IoT 硬件传感器集成。
-
 ---
 *Created by the RootMate Team*
